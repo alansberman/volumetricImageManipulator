@@ -5,17 +5,17 @@
 */
 #ifndef VOLIMAGE_H
 #define VOLIMAGE_H
-
 #include <string>
 #include <vector>
+//Header file adapted from that provided in the assignment brief
+//Adds the private field number_images so as to include the functionality
+//of informing the user how many MRI scans were read in and added to the vector
 namespace BRMALA003{
-
 class VolImage
 {
 private: // private members
 int width, height,number_images; // width and height of image stack
 std::vector<unsigned char**> slices; // data for each slice, in order
-
 public: // public members
 VolImage(); // default constructor - define in .cpp
 ~VolImage(); // destructor - define in .cpp file
