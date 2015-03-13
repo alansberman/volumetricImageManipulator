@@ -3,13 +3,12 @@
 * Author: Alan Berman
 * 07/03/2015
 */
-#include "vector.h"
+
 #include "volImage.h"
-#include <string>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <vector>
+#include <stdlib.h>
 
 namespace BRMALA003{
 using namespace std;
@@ -18,6 +17,7 @@ VolImage::VolImage()
 		width=0;
 		height=0;
 		vector<unsigned char**> slices;
+		int number_images;
 }
 
 VolImage::~VolImage()
@@ -27,62 +27,101 @@ VolImage::~VolImage()
 	
 bool VolImage::readImages(string baseName)
 {
-	string mriFile = "MRI.data";
+	string mriFile = baseName;
+	mriFile+=".data";
 	string info,count,filename;
-	string base_name="MRI";
+	string base_name=baseName;
 	streampos size;
 	stringstream out;
-	int width,height,number_images;
     ifstream i(mriFile.c_str());
-   
     if(!i)
 		{ cout << "Couldn't open file."  << endl; 
 		  return false;
-		}
-	
+		}	
 	while (!i.eof())
 	{
 		getline(i,info);
 		istringstream ss(info);
 		ss >> width;
 		ss >> height;
-		ss >> number_images; 
+		ss >> this->number_images;
 	}
-	
-	for (int i=0;i<number_images;++i)
+	slices.resize(this->number_images);
+	for (int i=0;i<this->number_images;++i)
 	{		
 			unsigned char ** images = new unsigned char *[height];
 			//https://notfaq.wordpress.com/2006/08/30/c-convert-int-to-string/
+			out.str("");
 			out << i;	
-			count=out.str();	
+			count=out.str();
+			//Adapted from http://www.cplusplus.com/doc/tutorial/files/
+			ifstream img(string(base_name + count+ ".raw").c_str(), ios::in|ios::binary);
 			for (int j = 0;j<height;++j)
 			{
-				//Adapted from http://www.cplusplus.com/doc/tutorial/files/
-				ifstream img(string("brain_mri_raws" + base_name + ".raw").c_str(), ios::in|ios::binary|ios::ate	);
-				if (img.is_open())	
-				{
-					images[j] = new unsigned char[width];			
-                    img.read ((char*)images[j], width);
-				}		
+				unsigned char * image_row = new unsigned char[width];
+				img.read ((	char*)image_row, width);
+				images[j]=image_row;
 			}
-			img.close();    
-			slices.push_back(images); //NOT SURE IF THIS IS OK/RIGHT
-	}	
+			slices[i]=images;
+			img.close();    			 
+	}
+	cout << slices.size()<< endl;	
 	return true;
 }
 
 void VolImage::diffmap(int sliceI, int sliceJ, string output_prefix)
 {
-	
+	ofstream out;
+	output_prefix+=".raw";
+	out.open(output_prefix.c_str(), ios::out | ios::binary);
+	unsigned char ** images = new unsigned char *[height];
+	for (int y=0;y<height;y++)
+	{
+		for (int z=0;z<width;z++)
+		{
+			unsigned char * row = new unsigned char[width];
+			row[y]=(unsigned char)(abs((float)slices[sliceI][y][z] - (float)slices[sliceJ][y][z])/2);
+			//out.write((char *)(unsigned char)(abs((float)slices[sliceI][y][z] - (float)slices[sliceJ][y][z])/2),width);
+
+		}
+	//	unsigned char * image_row = new unsigned char[width];
+		//img.read ((	char*)image_row, width);
+	//	/image_row=(unsigned char)slices[sliceI][width][height];
+	//	out.write((char *)(unsigned char)(abs((float)slices[sliceI][width][height] - (float)slices[sliceJ][width][height])/2),width));
+	//	images[y]=image_row;
+
+	}
+
+	out.close();
 }
 
 void VolImage::extract(int sliceId, string output_prefix)	
 {
-	
+	ofstream outHeader;
+	outHeader.open("output.dat");
+	if (outHeader.is_open())
+	{
+		outHeader  << width << " " << height << " " << 1 << endl;
+	}
+	outHeader.close();
+	ofstream output;
+	output_prefix+=".raw";
+	output.open(output_prefix.c_str(), ios::out | ios::binary);
+	for (int y=0;y<height;y++)
+	{
+		output.write((char *)slices	[sliceId][y],width); 
+	}
+
+	output.close();
 }
+
 
 int VolImage::volImageSize(void)
 {
-	return 0;
+	int size_of_chars = width*height;
+	int size_of_pointers= height *sizeof(unsigned char* );
+	int size_of_image=size_of_chars+size_of_pointers;
+	int total_size=size_of_image*this->number_images;//*sizeof(unsigned char *);
+	return total_size;
 }	
 }
