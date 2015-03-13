@@ -12,19 +12,26 @@ int main(int argc, char * argv[])
 {
 	BRMALA003::VolImage v;
 	int flag = 0;
-	for (int i=1;i<argc;i++)
+	cout << "Number of images: ";
+	string base = string(argv[1]);
+	v.readImages(base);
+	for (int i=2;i<argc;i++)
 	{
 		string s = string(argv[i]);
 		if 	(s=="-d")
 		{
 			i++;
 			s=string(argv[i]);
+			//cout << s << endl;
 			int j = atoi(s.c_str());
 			i++;
+			//cout << j << endl;
 			s=string(argv[i]);
 			int k = atoi(s.c_str());
+			//cout << k << endl;
 			i++;
 			s=string(argv[i]);
+			//cout << s << endl;
 			v.diffmap(j,k,s);
 			flag =1;
 		}
@@ -45,12 +52,12 @@ int main(int argc, char * argv[])
 			}
 		}	
 	}	
-	string base = string(argv[1]);
-	cout << "Number of images: ";
-	v.readImages(base);
-	string g = "output_prefix";
-	v.extract(15,g); //
-	v.diffmap(1,2,g);
+
+
+//	string g = "output_prefix";
+//	string j = "uit";
+//	v.extract(15,g); //
+//	v.diffmap(0,1,j);
 	cout << "Number of bytes required: " << v.volImageSize() << endl;
 	return 0;
 }	

@@ -17,7 +17,7 @@ VolImage::VolImage()
 		width=0;
 		height=0;
 		vector<unsigned char**> slices;
-		int number_images;
+		number_images=0;
 }
 
 VolImage::~VolImage()
@@ -74,21 +74,18 @@ void VolImage::diffmap(int sliceI, int sliceJ, string output_prefix)
 	ofstream out;
 	output_prefix+=".raw";
 	out.open(output_prefix.c_str(), ios::out | ios::binary);
-	unsigned char ** images = new unsigned char *[height];
-	for (int y=0;y<height;y++)
+	unsigned char ** scans = new unsigned char *[height];
+	for (int r=0;r<height;r++)
 	{
+		unsigned char * row = new unsigned char[width];
 		for (int z=0;z<width;z++)
 		{
-			unsigned char * row = new unsigned char[width];
-			row[y]=(unsigned char)(abs((float)slices[sliceI][y][z] - (float)slices[sliceJ][y][z])/2);
-			//out.write((char *)(unsigned char)(abs((float)slices[sliceI][y][z] - (float)slices[sliceJ][y][z])/2),width);
 
+			row[z]=(unsigned char)(abs(slices[sliceI][r][z] -slices[sliceJ][r][z])/2);
+			scans[r]=row;
+			//out.write((char *)(unsigned char)(abs((float)slices[sliceI][y][z] - (float)slices[sliceJ][y][z])/2),width);
 		}
-	//	unsigned char * image_row = new unsigned char[width];
-		//img.read ((	char*)image_row, width);
-	//	/image_row=(unsigned char)slices[sliceI][width][height];
-	//	out.write((char *)(unsigned char)(abs((float)slices[sliceI][width][height] - (float)slices[sliceJ][width][height])/2),width));
-	//	images[y]=image_row;
+		out.write((char*)scans[r],width);
 
 	}
 
